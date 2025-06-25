@@ -11,6 +11,7 @@ push = require 'push'
 Class = require 'class'
 
 require 'ball'
+require 'paddle'
 
 function love.load()
     -- sets filter to nearest for more pixelated look
@@ -33,8 +34,8 @@ function love.load()
     player1Score = 0
     player2Score = 0
 
-    player1Y = 10
-    player2Y = VIRTUAL_HEIGHT - 30
+    player1 = Paddle(10, 10, 5, 20)
+    player2 = Paddle(VIRTUAL_WIDTH - 15, VIRTUAL_HEIGHT - 30, 5, 20)
 
     ball = Ball(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 4, 4)
 
@@ -59,21 +60,28 @@ end
 function love.update(dt)
     -- player 1 movement
     if love.keyboard.isDown('w') then
-        player1Y = math.max(0, player1Y - PADDLE_SPEED * dt)
+        player1.dy = -PADDLE_SPEED
     elseif love.keyboard.isDown('s') then
-        player1Y = math.min(VIRTUAL_HEIGHT - 20, player1Y + PADDLE_SPEED * dt)
+        player1.dy = PADDLE_SPEED
+    else
+        player1.dy = 0
     end
 
     -- player 2 movement
     if love.keyboard.isDown('up') then
-        player2Y = math.max(0, player2Y - PADDLE_SPEED * dt)
+        player2.dy = -PADDLE_SPEED
     elseif love.keyboard.isDown('down') then
-        player2Y = math.min(VIRTUAL_HEIGHT - 20, player2Y + PADDLE_SPEED * dt)
+        player2.dy = PADDLE_SPEED
+    else
+        player2.dy = 0
     end
 
     if gameState == 'play' then
         ball:update(dt)
     end
+
+    player1:update(dt)
+    player2:update(dt)
 end
 
 function love.draw()
@@ -90,10 +98,10 @@ function love.draw()
     love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 2 - 80)
 
     -- paddle 1
-    love.graphics.rectangle('fill', 10, player1Y, 5, 20)
+    player1:render()
 
     -- paddle 2
-    love.graphics.rectangle('fill', VIRTUAL_WIDTH - 15, player2Y, 5, 20)
+    player2:render()
 
     -- ball
     ball:render()
