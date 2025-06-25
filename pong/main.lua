@@ -8,6 +8,10 @@ PADDLE_SPEED = 200
 
 push = require 'push'
 
+Class = require 'class'
+
+require 'ball'
+
 function love.load()
     -- sets filter to nearest for more pixelated look
     love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -23,33 +27,52 @@ function love.load()
     largeFont = love.graphics.newFont('font.ttf', 32)
     smallFont = love.graphics.newFont('font.ttf', 8)
 
+    love.math.setRandomSeed(os.time())
+
     -- setup players variables
     player1Score = 0
     player2Score = 0
 
     player1Y = 10
     player2Y = VIRTUAL_HEIGHT - 30
+
+    ball = Ball(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 4, 4)
+
+    gameState = 'start'
 end
 
 function love.keypressed(key)
     if key == 'escape' then
         love.event.quit()
+
+    elseif key == 'enter' or key == 'return' then
+        if gameState == 'start' then
+            gameState = 'play'
+        else
+            gameState = 'start'
+
+            ball:reset()
+        end
     end
 end
 
 function love.update(dt)
     -- player 1 movement
     if love.keyboard.isDown('w') then
-        player1Y = player1Y - PADDLE_SPEED * dt
+        player1Y = math.max(0, player1Y - PADDLE_SPEED * dt)
     elseif love.keyboard.isDown('s') then
-        player1Y = player1Y + PADDLE_SPEED * dt
+        player1Y = math.min(VIRTUAL_HEIGHT - 20, player1Y + PADDLE_SPEED * dt)
     end
 
     -- player 2 movement
     if love.keyboard.isDown('up') then
-        player2Y = player2Y - PADDLE_SPEED * dt
+        player2Y = math.max(0, player2Y - PADDLE_SPEED * dt)
     elseif love.keyboard.isDown('down') then
-        player2Y = player2Y + PADDLE_SPEED * dt
+        player2Y = math.min(VIRTUAL_HEIGHT - 20, player2Y + PADDLE_SPEED * dt)
+    end
+
+    if gameState == 'play' then
+        ball:update(dt)
     end
 end
 
@@ -73,7 +96,7 @@ function love.draw()
     love.graphics.rectangle('fill', VIRTUAL_WIDTH - 15, player2Y, 5, 20)
 
     -- ball
-    love.graphics.rectangle('fill', VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
+    ball:render()
 
     push:apply('end')
 end
