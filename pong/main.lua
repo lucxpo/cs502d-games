@@ -24,6 +24,8 @@ function love.load()
         vsync = true
     })
 
+    love.window.setTitle('Pong')
+
     -- create fonts
     largeFont = love.graphics.newFont('font.ttf', 32)
     smallFont = love.graphics.newFont('font.ttf', 8)
@@ -58,6 +60,40 @@ function love.keypressed(key)
 end
 
 function love.update(dt)
+    if gameState == 'play' then
+        if ball:collides(player1) then
+            ball.dx = -ball.dx * 1.03
+            ball.x = player1.x + player1.width
+            
+            if ball.dy < 0 then
+                ball.dy = -math.random(10, 150)
+            else
+                ball.dy = math.random(10, 150)
+            end
+        end
+
+        if ball:collides(player2) then
+            ball.dx = -ball.dx * 1.03
+            ball.x = player2.x - ball.width
+            
+            if ball.dy < 0 then
+                ball.dy = -math.random(10, 150)
+            else
+                ball.dy = math.random(10, 150)
+            end
+        end
+
+        if ball.y < 0 then
+            ball.dy = -ball.dy
+            ball.y = 0
+        elseif ball.y > VIRTUAL_HEIGHT - ball.height then
+            ball.dy = -ball.dy
+            ball.y = VIRTUAL_HEIGHT - ball.height
+        end
+
+        ball:update(dt)
+    end
+
     -- player 1 movement
     if love.keyboard.isDown('w') then
         player1.dy = -PADDLE_SPEED
@@ -76,10 +112,6 @@ function love.update(dt)
         player2.dy = 0
     end
 
-    if gameState == 'play' then
-        ball:update(dt)
-    end
-
     player1:update(dt)
     player2:update(dt)
 end
@@ -89,6 +121,8 @@ function love.draw()
 
     -- background color
     love.graphics.clear(40/255, 40/255, 40/255, 1)
+
+    displayFPS()
 
     -- choose font
     love.graphics.setFont(largeFont)
@@ -107,4 +141,11 @@ function love.draw()
     ball:render()
 
     push:apply('end')
+end
+
+function displayFPS()
+    love.graphics.setFont(smallFont)
+    love.graphics.setColor(0, 1, 0, 1)
+    love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
+    love.graphics.setColor(1, 1, 1, 1)
 end
