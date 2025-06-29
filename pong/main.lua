@@ -1,26 +1,31 @@
+-- set window size
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
+-- set virtual window size
 VIRTUAL_WIDTH = 432
 VIRTUAL_HEIGHT = 243
 
+-- set speed of player's paddle
 PADDLE_SPEED = 200
 
+-- library for scaling virtual window to fit window
 push = require 'push'
 
+-- library for using class like syntax in lua OOP
 Class = require 'class'
 
 require 'ball'
 require 'paddle'
 
 function love.load()
-    -- sets filter to nearest for more pixelated look
+    -- set filter to nearest for more pixelated look
     love.graphics.setDefaultFilter('nearest', 'nearest')
 
-    -- sets screen with virtual screen with push library
+    -- set screen with virtual screen with push library
     push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
         fullscreen = false,
-        resizable = false,
+        resizable = true,
         vsync = true
     })
 
@@ -55,10 +60,15 @@ function love.load()
     gameState = 'start'
 end
 
+function love.resize(w, h)
+    push:resize(w, h)
+end
+
 function love.keypressed(key)
     if key == 'escape' then
         love.event.quit()
-
+    
+    -- state machine
     elseif key == 'enter' or key == 'return' then
         if gameState == 'start' then
             gameState = 'serve'
@@ -74,8 +84,10 @@ end
 
 function love.update(dt)
     if gameState == 'play' then
+
+        -- check ball collision with player 1
         if ball:collides(player1) then
-            ball.dx = -ball.dx * 1.03
+            ball.dx = -ball.dx * 1.1
             ball.x = player1.x + player1.width
             
             if ball.dy < 0 then
@@ -87,8 +99,9 @@ function love.update(dt)
             sounds['paddle_hit']:play()
         end
 
+        -- check ball collision with player 2
         if ball:collides(player2) then
-            ball.dx = -ball.dx * 1.03
+            ball.dx = -ball.dx * 1.1
             ball.x = player2.x - ball.width
             
             if ball.dy < 0 then
@@ -100,17 +113,20 @@ function love.update(dt)
             sounds['paddle_hit']:play()
         end
 
+        -- check ball collision with top wall
         if ball.y < 0 then
             ball.dy = -ball.dy
             ball.y = 0
             sounds['wall_hit']:play()
-
+        
+        -- check ball collision with bottom wall
         elseif ball.y > VIRTUAL_HEIGHT - ball.height then
             ball.dy = -ball.dy
             ball.y = VIRTUAL_HEIGHT - ball.height
             sounds['wall_hit']:play()
         end
 
+        -- check if player 2 scores
         if ball.x < 0 then
             player2Score = player2Score + 1
             if player2Score == 2 then
@@ -124,6 +140,7 @@ function love.update(dt)
             ball:reset()
             sounds['score']:play()
 
+        -- check if player 1 scores
         elseif ball.x + ball.width > VIRTUAL_WIDTH then
             player1Score = player1Score + 1
             if player1Score == 2 then
@@ -132,7 +149,7 @@ function love.update(dt)
             else
                 gameState = 'serve'
             end
-            
+
             servingPlayer = 2
             ball:reset()
             sounds['score']:play()
